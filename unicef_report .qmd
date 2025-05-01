@@ -17,7 +17,7 @@ This report presents a data-driven narrative using UNICEF's global indicators to
 
 ## Data Preparation
 
-```python
+```{python}
 import pandas as pd
 import plotnine as p9
 import geopandas as gpd
@@ -26,7 +26,13 @@ import geopandas as gpd
 indicator1 = pd.read_csv("unicef_indicator_1.csv")
 indicator2 = pd.read_csv("unicef_indicator_2.csv")
 metadata = pd.read_csv("unicef_metadata.csv")
+```
 
+---
+
+## 1. World Map – Drinking Water Access in Schools
+
+```{python}
 # Filter for recent data
 latest_year = indicator2['time_period'].max()
 df_map = indicator2[indicator2['time_period'] == latest_year]
@@ -35,62 +41,65 @@ df_map = indicator2[indicator2['time_period'] == latest_year]
 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
 world = world.rename(columns={"name": "country"})
 merged = world.merge(df_map, on="country")
-```
 
----
-
-## 1. World Map – Drinking Water Access in Schools
-
-```python
-(p9.ggplot(merged.dropna(), p9.aes(fill='obs_value')) +
- p9.geom_map(map_id='country', data=merged.dropna(), map=merged.dropna()) +
- p9.labs(title='Drinking Water Access in Schools (Latest Year)', fill='% Access') +
- p9.theme_minimal())
+# Plot
+(
+    p9.ggplot(merged.dropna(), p9.aes(fill='obs_value')) +
+    p9.geom_map(map_id='country', data=merged.dropna(), map=merged.dropna()) +
+    p9.labs(title='Drinking Water Access in Schools (Latest Year)', fill='% Access') +
+    p9.theme_minimal()
+)
 ```
 
 ---
 
 ## 2. Bar Chart – AIDS-related Death Rate (Top 10 Countries)
 
-```python
+```{python}
 bar_data = indicator1[indicator1['time_period'] == 2015].copy()
 bar_data['obs_value'] = pd.to_numeric(bar_data['obs_value'], errors='coerce')
 bar_data = bar_data.sort_values('obs_value', ascending=False).head(10)
 
-(p9.ggplot(bar_data, p9.aes(x='reorder(country, obs_value)', y='obs_value')) +
- p9.geom_col(fill='crimson') +
- p9.coord_flip() +
- p9.labs(title='Top 10 Countries by AIDS-related Deaths (2015)', y='Death Rate', x='Country') +
- p9.theme_minimal())
+(
+    p9.ggplot(bar_data, p9.aes(x='reorder(country, obs_value)', y='obs_value')) +
+    p9.geom_col(fill='crimson') +
+    p9.coord_flip() +
+    p9.labs(title='Top 10 Countries by AIDS-related Deaths (2015)', y='Death Rate', x='Country') +
+    p9.theme_minimal()
+)
 ```
 
 ---
 
 ## 3. Scatter Plot – Water Access vs Life Expectancy
 
-```python
+```{python}
 combined = indicator2[indicator2['time_period'] == 2015].merge(
     metadata[metadata['year'] == 2015], on='country')
 
-(p9.ggplot(combined, p9.aes(x='obs_value', y='Life expectancy at birth, total (years)')) +
- p9.geom_point() +
- p9.geom_smooth(method='lm', color='blue') +
- p9.labs(title='Water Access vs Life Expectancy', x='% Water Access in Schools', y='Life Expectancy') +
- p9.theme_light())
+(
+    p9.ggplot(combined, p9.aes(x='obs_value', y='Life expectancy at birth, total (years)')) +
+    p9.geom_point() +
+    p9.geom_smooth(method='lm', color='blue') +
+    p9.labs(title='Water Access vs Life Expectancy', x='% Water Access in Schools', y='Life Expectancy') +
+    p9.theme_light()
+)
 ```
 
 ---
 
 ## 4. Time-Series Line Chart – AIDS Death Rate Trends
 
-```python
+```{python}
 selected = indicator1[indicator1['country'].isin(['India', 'Nigeria', 'Brazil'])].copy()
 selected['obs_value'] = pd.to_numeric(selected['obs_value'], errors='coerce')
 
-(p9.ggplot(selected, p9.aes(x='time_period', y='obs_value', color='country')) +
- p9.geom_line() +
- p9.labs(title='AIDS Death Rates Over Time (10–19 years)', x='Year', y='Death Rate') +
- p9.theme_minimal())
+(
+    p9.ggplot(selected, p9.aes(x='time_period', y='obs_value', color='country')) +
+    p9.geom_line() +
+    p9.labs(title='AIDS Death Rates Over Time (10–19 years)', x='Year', y='Death Rate') +
+    p9.theme_minimal()
+)
 ```
 
 ---
